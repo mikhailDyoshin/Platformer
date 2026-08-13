@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://du6jjh4eyws73"]
+
+[ext_resource type="Script" uid="uid://bw3wvhs5m2swk" path="res://player.gd" id="1_kpjcp"]
+[ext_resource type="Texture2D" uid="uid://1buqstalc6v0" path="res://basketball.svg" id="2_kne1u"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_dgfsc"]
+radius = 26.019224
+
+[node name="Player" type="CharacterBody2D" unique_id=240434125]
+script = ExtResource("1_kpjcp")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=243768101]
+texture = ExtResource("2_kne1u")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=864521729]
+shape = SubResource("CircleShape2D_dgfsc")
