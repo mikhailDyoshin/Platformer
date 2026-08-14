@@ -20,7 +20,8 @@ enum State {
 	WALKING,
 	CHARGING,
 	JUMPING,
-	RUNNING
+	RUNNING,
+	FALLING
 }
 
 var prev_state := State.IDLE
@@ -43,6 +44,9 @@ func _physics_process(delta: float) -> void:
 			
 		State.RUNNING:
 			running(delta)
+			
+		State.FALLING:
+			falling(delta)
 	move_and_slide()
 	
 
@@ -51,17 +55,22 @@ func idle(_delta):
 	
 	var direction := Input.get_axis("move_left", "move_right")
 
+	if Input.is_action_pressed("run") and direction:
+		_change_state(State.RUNNING)
+		return
+
 	if direction:
 		_change_state(State.WALKING)
 		return
 	
 	if Input.is_action_just_pressed("jump"):
 		_change_state(State.CHARGING)
-		jump_charge = INIT_JUMP_CHARGE
 		return
+		
 			
 	if not is_on_floor():
-		fall()
+		_change_state(State.FALLING)
+		return
 		
 func walking(_delta):
 	var direction := Input.get_axis("move_left", "move_right")
@@ -75,7 +84,6 @@ func walking(_delta):
 	
 	if Input.is_action_just_pressed("jump"):
 		_change_state(State.CHARGING)
-		jump_charge = INIT_JUMP_CHARGE
 		return
 		
 	if Input.is_action_just_pressed("run"):
@@ -83,10 +91,11 @@ func walking(_delta):
 		return
 		
 	if not is_on_floor():
-		fall()
+		_change_state(State.FALLING)
+		return
 	
 func jumping(delta: float):
-	velocity += get_gravity() * delta
+	apply_gravity(delta)
 	var direction = Input.get_axis("move_left", "move_right")
 
 	decelerate(air_deceleration)
@@ -133,9 +142,15 @@ func accelerate(direction, max_speed, acceleration):
 func decelerate(deceleration):
 	velocity.x = move_toward(velocity.x, 0, deceleration)
 
-func fall():
-	_change_state(State.JUMPING)
+func falling(delta):
+	apply_gravity(delta)
+	
+	if is_on_floor():
+		_change_state(State.WALKING)
 	return
+	
+func apply_gravity(delta: float):
+	velocity += get_gravity() * delta
 	
 func _change_state(new_state):
 	prev_state = state
@@ -165,4 +180,4 @@ func running(_delta: float):
 		return
 		
 	if not is_on_floor():
-		fall()
+		_change_state(State.FALLING)
