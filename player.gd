@@ -96,12 +96,13 @@ func walking(_delta):
 	
 func jumping(delta: float):
 	apply_gravity(delta)
-	var direction = Input.get_axis("move_left", "move_right")
-
-	decelerate(air_deceleration)
 	
-	if direction:
-		accelerate(direction, MAX_WALKING_SPEED, walking_acceleration)
+	var direction := Input.get_axis("move_left", "move_right")
+	
+	air_movement()
+	
+	if velocity.y >= 0:
+		_change_state(State.FALLING)
 		
 	if is_on_floor():
 		if direction:
@@ -118,6 +119,7 @@ func charging(delta):
 	else:
 		accelerate(direction, MAX_WALKING_SPEED, walking_acceleration)
 
+	#decelerate(floor_deceleration)
 	
 	# Charge
 	jump_charge += jump_charge_rate * delta
@@ -128,6 +130,9 @@ func charging(delta):
 		velocity.y = jump_charge * jump_velocity
 		_change_state(State.JUMPING)
 		return
+		
+	if not is_on_floor():
+		_change_state(State.FALLING)
 
 func get_state_name(state_var: State) -> String:
 	return State.find_key(state_var)
@@ -145,8 +150,15 @@ func decelerate(deceleration):
 func falling(delta):
 	apply_gravity(delta)
 	
+	air_movement()
+	
 	if is_on_floor():
-		_change_state(State.WALKING)
+		var direction := Input.get_axis("move_left", "move_right")
+
+		if direction:
+			_change_state(State.WALKING)
+		else:
+			_change_state(State.IDLE)
 	return
 	
 func apply_gravity(delta: float):
@@ -161,6 +173,14 @@ func _change_state(new_state):
 			jump_charge = INIT_JUMP_CHARGE
 	
 	print_state()
+	
+func air_movement():
+	var direction = Input.get_axis("move_left", "move_right")
+
+	if direction:
+		accelerate(direction, MAX_WALKING_SPEED, walking_acceleration)
+	else:
+		decelerate(air_deceleration)
 
 func running(_delta: float):
 	var direction := Input.get_axis("move_left", "move_right")
