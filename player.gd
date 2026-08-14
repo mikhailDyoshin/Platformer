@@ -52,11 +52,11 @@ func idle(_delta):
 	var direction := Input.get_axis("move_left", "move_right")
 
 	if direction:
-		_change_state(state, State.WALKING)
+		_change_state(State.WALKING)
 		return
 	
 	if Input.is_action_just_pressed("jump"):
-		_change_state(state, State.CHARGING)
+		_change_state(State.CHARGING)
 		jump_charge = INIT_JUMP_CHARGE
 		return
 			
@@ -67,21 +67,19 @@ func walking(_delta):
 	var direction := Input.get_axis("move_left", "move_right")
 	
 	if not direction:
-		_change_state(state, State.IDLE)
+		_change_state(State.IDLE)
 		return
 		
-	if velocity.x > MAX_WALKING_SPEED:
-		decelerate(floor_deceleration)
-	else:
-		accelerate(direction, MAX_WALKING_SPEED, walking_acceleration)
+
+	accelerate(direction, MAX_WALKING_SPEED, walking_acceleration)
 	
 	if Input.is_action_just_pressed("jump"):
-		_change_state(state, State.CHARGING)
+		_change_state(State.CHARGING)
 		jump_charge = INIT_JUMP_CHARGE
 		return
 		
 	if Input.is_action_just_pressed("run"):
-		_change_state(state, State.RUNNING)
+		_change_state(State.RUNNING)
 		return
 		
 	if not is_on_floor():
@@ -92,12 +90,15 @@ func jumping(delta: float):
 	var direction = Input.get_axis("move_left", "move_right")
 
 	decelerate(air_deceleration)
+	
+	if direction:
+		accelerate(direction, MAX_WALKING_SPEED, walking_acceleration)
 		
 	if is_on_floor():
 		if direction:
-			_change_state(state, State.WALKING)
+			_change_state(State.WALKING)
 		else:
-			_change_state(state, State.IDLE)
+			_change_state(State.IDLE)
 
 	
 func charging(delta):
@@ -116,7 +117,7 @@ func charging(delta):
 	# Release
 	if Input.is_action_just_released("jump"):
 		velocity.y = jump_charge * jump_velocity
-		_change_state(state, State.JUMPING)
+		_change_state(State.JUMPING)
 		return
 
 func get_state_name(state_var: State) -> String:
@@ -127,37 +128,40 @@ func print_state() -> void:
  
 	
 func accelerate(direction, max_speed, acceleration):
-	velocity.x = direction * move_toward(abs(velocity.x), max_speed, acceleration)
+	velocity.x = move_toward(velocity.x, direction * max_speed, acceleration)
 
 func decelerate(deceleration):
 	velocity.x = move_toward(velocity.x, 0, deceleration)
 
 func fall():
-	_change_state(state, State.JUMPING)
-	jump_charge = INIT_JUMP_CHARGE
+	_change_state(State.JUMPING)
 	return
 	
-func _change_state(current_state, new_state):
-	prev_state = current_state
+func _change_state(new_state):
+	prev_state = state
 	state = new_state
+	
+	match state:
+		State.CHARGING:
+			jump_charge = INIT_JUMP_CHARGE
+	
 	print_state()
 
 func running(_delta: float):
 	var direction := Input.get_axis("move_left", "move_right")
 	
 	if not direction:
-		_change_state(state, State.IDLE)
+		_change_state(State.IDLE)
 		return
 		
 	accelerate(direction, MAX_RUNNING_SPEED, running_acceleration)
 	
 	if Input.is_action_just_released("run"):
-		_change_state(state, State.WALKING)
+		_change_state(State.WALKING)
 		return
 	
 	if Input.is_action_just_pressed("jump"):
-		_change_state(state, State.CHARGING)
-		jump_charge = INIT_JUMP_CHARGE
+		_change_state(State.CHARGING)
 		return
 		
 	if not is_on_floor():
