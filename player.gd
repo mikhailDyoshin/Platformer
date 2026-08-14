@@ -7,7 +7,7 @@ extends CharacterBody2D
 @export var walking_acceleration := 15.0
 @export var running_acceleration := 30.0
 @export var jump_charge_rate := 2.0
-@export var coyote_time := 0.12
+@export var coyote_time := 0.1
 
 const MAX_JUMP_CHARGE := 2.0
 const INIT_JUMP_CHARGE := 1.0
