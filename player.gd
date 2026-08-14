@@ -7,6 +7,7 @@ extends CharacterBody2D
 @export var walking_acceleration := 15.0
 @export var running_acceleration := 30.0
 @export var jump_charge_rate := 2.0
+@export var coyote_time := 0.12
 
 const MAX_JUMP_CHARGE := 2.0
 const INIT_JUMP_CHARGE := 1.0
@@ -14,6 +15,8 @@ const MAX_WALKING_SPEED := 200.0
 const MAX_RUNNING_SPEED := 600.0
 
 var jump_charge := INIT_JUMP_CHARGE
+
+var coyote_timer := 0.0
 
 enum State {
 	IDLE,
@@ -28,6 +31,8 @@ var prev_state := State.IDLE
 var state := State.IDLE
 
 func _physics_process(delta: float) -> void:
+	
+	coyote_timer = max(coyote_timer - delta, 0.0)
 
 	match state:
 		State.IDLE:
@@ -103,6 +108,7 @@ func jumping(delta: float):
 	
 	if velocity.y >= 0:
 		_change_state(State.FALLING)
+		return
 		
 	if is_on_floor():
 		if direction:
@@ -118,8 +124,6 @@ func charging(delta):
 		accelerate(direction, MAX_RUNNING_SPEED, running_acceleration)
 	else:
 		accelerate(direction, MAX_WALKING_SPEED, walking_acceleration)
-
-	#decelerate(floor_deceleration)
 	
 	# Charge
 	jump_charge += jump_charge_rate * delta
@@ -131,8 +135,9 @@ func charging(delta):
 		_change_state(State.JUMPING)
 		return
 		
-	if not is_on_floor():
+	if not is_on_floor() and prev_state != State.FALLING:
 		_change_state(State.FALLING)
+		return
 
 func get_state_name(state_var: State) -> String:
 	return State.find_key(state_var)
@@ -152,6 +157,11 @@ func falling(delta):
 	
 	air_movement()
 	
+	if Input.is_action_just_pressed("jump") and coyote_timer > 0:
+		_change_state(State.CHARGING)
+		print("COYOTE!!!!!!!!!!!!!!!!!!!!!!!!!", coyote_timer)
+		return
+		
 	if is_on_floor():
 		var direction := Input.get_axis("move_left", "move_right")
 
@@ -171,6 +181,10 @@ func _change_state(new_state):
 	match state:
 		State.CHARGING:
 			jump_charge = INIT_JUMP_CHARGE
+		State.FALLING:
+			if prev_state == State.WALKING or prev_state == State.RUNNING:
+				coyote_timer = coyote_time
+				print(coyote_timer)
 	
 	print_state()
 	
