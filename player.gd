@@ -1,14 +1,17 @@
 extends CharacterBody2D
 
 @export var jump_velocity := -400.0
-@export var horiz_speed := 200.0
-@export var deceleration := 10.0
-@export var acceleration := 10.0
+@export var horiz_speed := 300.0
+@export var air_deceleration := 2.0
+@export var floor_deceleration := 10.0
+@export var walking_acceleration := 15.0
+@export var running_acceleration := 30.0
 @export var jump_charge_rate := 2.0
 
 const MAX_JUMP_CHARGE := 2.0
 const INIT_JUMP_CHARGE := 1.0
 const MAX_WALKING_SPEED := 200.0
+const MAX_RUNNING_SPEED := 600.0
 
 var jump_charge := INIT_JUMP_CHARGE
 
@@ -20,7 +23,8 @@ enum State {
 	RUNNING
 }
 
-var state := State.JUMPING
+var prev_state := State.IDLE
+var state := State.IDLE
 
 func _physics_process(delta: float) -> void:
 
@@ -36,42 +40,49 @@ func _physics_process(delta: float) -> void:
 
 		State.JUMPING:
 			jumping(delta)
+			
+		State.RUNNING:
+			running(delta)
 	move_and_slide()
 	
 
-func idle(delta):
-	velocity.x = move_toward(velocity.x, 0, deceleration)
+func idle(_delta):
+	decelerate(floor_deceleration)
 	
 	var direction := Input.get_axis("move_left", "move_right")
 
 	if direction:
-		state = State.WALKING
-		print_state()
+		_change_state(state, State.WALKING)
 		return
 	
 	if Input.is_action_just_pressed("jump"):
-		state = State.CHARGING
+		_change_state(state, State.CHARGING)
 		jump_charge = INIT_JUMP_CHARGE
-		print_state()
 		return
-	
+			
 	if not is_on_floor():
 		fall()
 		
-func walking(delta):
+func walking(_delta):
 	var direction := Input.get_axis("move_left", "move_right")
 	
 	if not direction:
-		state = State.IDLE
-		print_state()
+		_change_state(state, State.IDLE)
 		return
 		
-	accelerate_walk(direction)
+	if velocity.x > MAX_WALKING_SPEED:
+		decelerate(floor_deceleration)
+	else:
+		accelerate(direction, MAX_WALKING_SPEED, walking_acceleration)
 	
 	if Input.is_action_just_pressed("jump"):
-		state = State.CHARGING
+		_change_state(state, State.CHARGING)
 		jump_charge = INIT_JUMP_CHARGE
-		print_state()
+		return
+		
+	if Input.is_action_just_pressed("run"):
+		_change_state(state, State.RUNNING)
+		return
 		
 	if not is_on_floor():
 		fall()
@@ -79,26 +90,25 @@ func walking(delta):
 func jumping(delta: float):
 	velocity += get_gravity() * delta
 	var direction = Input.get_axis("move_left", "move_right")
-	
-	if direction:
-		accelerate_walk(direction)
-	else:
-		velocity.x = move_toward(velocity.x, 0, deceleration)
+
+	decelerate(air_deceleration)
 		
 	if is_on_floor():
 		if direction:
-			state = State.WALKING
-			print_state()
+			_change_state(state, State.WALKING)
 		else:
-			state = State.IDLE
-			print_state()
-	
-#func running(delta):
-	#pass
+			_change_state(state, State.IDLE)
+
 	
 func charging(delta):
 	var direction := Input.get_axis("move_left", "move_right")
-	accelerate_walk(direction)
+	
+	if prev_state == State.RUNNING:
+		accelerate(direction, MAX_RUNNING_SPEED, running_acceleration)
+	else:
+		accelerate(direction, MAX_WALKING_SPEED, walking_acceleration)
+
+	
 	# Charge
 	jump_charge += jump_charge_rate * delta
 	jump_charge = min(jump_charge, MAX_JUMP_CHARGE)
@@ -106,26 +116,49 @@ func charging(delta):
 	# Release
 	if Input.is_action_just_released("jump"):
 		velocity.y = jump_charge * jump_velocity
-		state = State.JUMPING
-		print_state()
+		_change_state(state, State.JUMPING)
+		return
 
-func get_state_name(state: State) -> String:
-	return State.find_key(state)
+func get_state_name(state_var: State) -> String:
+	return State.find_key(state_var)
 	
-func print_state():
-	print(get_state_name(state))
+func print_state() -> void:
+	print(get_state_name(prev_state), "->", get_state_name(state))
  
-func accelerate_walk(direction):
-	var data = {"v": velocity.x, "max_v": direction * MAX_WALKING_SPEED, "a": direction * acceleration}
-	var text = "v: {v}\nmax_v: {max_v}\na: {a}".format(data)
-	print(data)
-	velocity.x = direction * move_toward(abs(velocity.x), MAX_WALKING_SPEED, acceleration)
+	
+func accelerate(direction, max_speed, acceleration):
+	velocity.x = direction * move_toward(abs(velocity.x), max_speed, acceleration)
 
-func decelerate():
+func decelerate(deceleration):
 	velocity.x = move_toward(velocity.x, 0, deceleration)
 
 func fall():
-	state = State.JUMPING
+	_change_state(state, State.JUMPING)
 	jump_charge = INIT_JUMP_CHARGE
-	print_state()
 	return
+	
+func _change_state(current_state, new_state):
+	prev_state = current_state
+	state = new_state
+	print_state()
+
+func running(_delta: float):
+	var direction := Input.get_axis("move_left", "move_right")
+	
+	if not direction:
+		_change_state(state, State.IDLE)
+		return
+		
+	accelerate(direction, MAX_RUNNING_SPEED, running_acceleration)
+	
+	if Input.is_action_just_released("run"):
+		_change_state(state, State.WALKING)
+		return
+	
+	if Input.is_action_just_pressed("jump"):
+		_change_state(state, State.CHARGING)
+		jump_charge = INIT_JUMP_CHARGE
+		return
+		
+	if not is_on_floor():
+		fall()
