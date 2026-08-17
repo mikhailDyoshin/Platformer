@@ -1,6 +1,8 @@
 [gd_scene format=4 uid="uid://3qut5rko30vt"]
 
+[ext_resource type="Script" uid="uid://d20x27cep7kbt" path="res://main.gd" id="1_cm0pq"]
 [ext_resource type="PackedScene" uid="uid://du6jjh4eyws73" path="res://Player.tscn" id="2_uu6xs"]
+[ext_resource type="PackedScene" uid="uid://c1lhx51df2t73" path="res://Spike.tscn" id="3_cm0pq"]
 [ext_resource type="Texture2D" uid="uid://dbn3vdkpc3l7n" path="res://floor.svg" id="3_r0du0"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_uu6xs"]
@@ -15,6 +17,7 @@ physics_layer_0/collision_layer = 1
 sources/1 = SubResource("TileSetAtlasSource_uu6xs")
 
 [node name="Main" type="Node2D" unique_id=411122876]
+script = ExtResource("1_cm0pq")
 
 [node name="Floor" type="TileMapLayer" parent="." unique_id=2086599909]
 position = Vector2(-1, 2)
@@ -23,3 +26,11 @@ tile_set = SubResource("TileSet_eiqrc")
 
 [node name="Player" parent="." unique_id=240434125 instance=ExtResource("2_uu6xs")]
 position = Vector2(71, 589)
+
+[node name="Spikes" type="Node2D" parent="." unique_id=85428715]
+
+[node name="Spike" parent="Spikes" unique_id=1721328495 instance=ExtResource("3_cm0pq")]
+position = Vector2(558, 530)
+
+[node name="Spike2" parent="Spikes" unique_id=1462672677 instance=ExtResource("3_cm0pq")]
+position = Vector2(303, 562)
