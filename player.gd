@@ -1,17 +1,17 @@
 extends CharacterBody2D
 
-@export var jump_velocity := -400.0
+@export var jump_velocity := -250.0
 @export var horiz_speed := 300.0
 @export var air_deceleration := 2.0
 @export var floor_deceleration := 10.0
 @export var walking_acceleration := 15.0
-@export var running_acceleration := 30.0
+@export var running_acceleration := 40.0
 @export var jump_charge_rate := 2.0
 @export var coyote_time := 0.1
 
 const MAX_JUMP_CHARGE := 2.0
 const INIT_JUMP_CHARGE := 1.0
-const MAX_WALKING_SPEED := 40.0
+const MAX_WALKING_SPEED := 50.0
 const MAX_RUNNING_SPEED := 600.0
 
 var jump_charge := INIT_JUMP_CHARGE
@@ -57,9 +57,7 @@ func _physics_process(delta: float) -> void:
 
 func idle(_delta):
 	decelerate(floor_deceleration)
-	
-	$AnimatedSprite2D.play("idle")
-	
+		
 	var direction := Input.get_axis("move_left", "move_right")
 
 	if Input.is_action_pressed("run") and direction:
@@ -82,7 +80,7 @@ func idle(_delta):
 func walking(_delta):
 	var direction := Input.get_axis("move_left", "move_right")
 	
-	$AnimatedSprite2D.play("walk")
+
 	
 	if direction:
 		$AnimatedSprite2D.flip_h = direction < 0
@@ -124,7 +122,7 @@ func jumping(delta: float):
 			_change_state(State.IDLE)
 
 	
-func charging(delta):
+func charging(delta):	
 	var direction := Input.get_axis("move_left", "move_right")
 	
 	if prev_state == State.RUNNING:
@@ -161,7 +159,6 @@ func decelerate(deceleration):
 
 func falling(delta):
 	
-	$AnimatedSprite2D.play("fall")
 	
 	apply_gravity(delta)
 	
@@ -184,22 +181,29 @@ func falling(delta):
 func apply_gravity(delta: float):
 	velocity += get_gravity() * delta
 	
-func _change_state(new_state):
+func _change_state(new_state: State):
 	
 	$AnimatedSprite2D.stop()
-	
+
 	prev_state = state
 	state = new_state
-	
+	print_state()
 	match state:
 		State.CHARGING:
 			jump_charge = INIT_JUMP_CHARGE
+			$AnimatedSprite2D.play("charging")
 		State.FALLING:
+			$AnimatedSprite2D.play("fall")
 			if prev_state == State.WALKING or prev_state == State.RUNNING:
 				coyote_timer = coyote_time
 				print(coyote_timer)
+		State.WALKING:
+			$AnimatedSprite2D.play("walk")
+		State.IDLE:
+			$AnimatedSprite2D.play("idle")
+
+			
 	
-	print_state()
 	
 func air_movement():
 	var direction = Input.get_axis("move_left", "move_right")
