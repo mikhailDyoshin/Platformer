@@ -58,6 +58,8 @@ func _physics_process(delta: float) -> void:
 func idle(_delta):
 	decelerate(floor_deceleration)
 	
+	$AnimatedSprite2D.play("idle")
+	
 	var direction := Input.get_axis("move_left", "move_right")
 
 	if Input.is_action_pressed("run") and direction:
@@ -175,6 +177,9 @@ func apply_gravity(delta: float):
 	velocity += get_gravity() * delta
 	
 func _change_state(new_state):
+	
+	$AnimatedSprite2D.stop()
+	
 	prev_state = state
 	state = new_state
 	
