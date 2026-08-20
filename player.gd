@@ -11,7 +11,7 @@ extends CharacterBody2D
 
 const MAX_JUMP_CHARGE := 2.0
 const INIT_JUMP_CHARGE := 1.0
-const MAX_WALKING_SPEED := 200.0
+const MAX_WALKING_SPEED := 40.0
 const MAX_RUNNING_SPEED := 600.0
 
 var jump_charge := INIT_JUMP_CHARGE
@@ -81,6 +81,11 @@ func idle(_delta):
 		
 func walking(_delta):
 	var direction := Input.get_axis("move_left", "move_right")
+	
+	$AnimatedSprite2D.play("walk")
+	
+	if direction:
+		$AnimatedSprite2D.flip_h = direction < 0
 	
 	if not direction:
 		_change_state(State.IDLE)
@@ -155,6 +160,9 @@ func decelerate(deceleration):
 	velocity.x = move_toward(velocity.x, 0, deceleration)
 
 func falling(delta):
+	
+	$AnimatedSprite2D.play("fall")
+	
 	apply_gravity(delta)
 	
 	air_movement()

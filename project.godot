@@ -22,7 +22,7 @@ GameManager="*uid://d1qwhjwdorclx"
 [display]
 
 window/stretch/mode="canvas_items"
-window/stretch/scale=2.0
+window/stretch/scale=3.0
 
 [input]
 
