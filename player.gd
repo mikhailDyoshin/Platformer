@@ -2,18 +2,21 @@ extends CharacterBody2D
 
 @export var jump_velocity := -250.0
 @export var horiz_speed := 300.0
-@export var air_deceleration := 2.0
+@export var air_deceleration := 0.1
 @export var floor_deceleration := 10.0
 @export var walking_acceleration := 15.0
-@export var running_acceleration := 40.0
+@export var running_acceleration := 15.0
 @export var jump_charge_rate := 2.0
-@export var coyote_time := 0.1
-@export var landing_time := 0.3
+@export var coyote_time := 0.2
+@export var landing_time := 0.2
+@export var air_acceleration := 3.0
 
 const MAX_JUMP_CHARGE := 2.0
 const INIT_JUMP_CHARGE := 1.0
 const MAX_WALKING_SPEED := 50.0
-const MAX_RUNNING_SPEED := 600.0
+const MAX_RUNNING_SPEED := 150.0
+const MAX_AIR_SPEED := MAX_RUNNING_SPEED
+const MAX_AIR_SPEED_ADDITION := 20.0
 
 var jump_charge := INIT_JUMP_CHARGE
 
@@ -206,17 +209,18 @@ func _enter_state(entered_state: State):
 		State.IDLE:
 			$AnimatedSprite2D.play("idle")
 		State.LANDING:
+			decelerate(floor_deceleration)
 			$AnimatedSprite2D.play("landing")
 			landing_timer = landing_time
+		State.RUNNING:
+			$AnimatedSprite2D.play("run")
 	
-	
+
 func air_movement():
 	var direction = Input.get_axis("move_left", "move_right")
 
 	if direction:
-		accelerate(direction, MAX_WALKING_SPEED, walking_acceleration)
-	else:
-		decelerate(air_deceleration)
+		velocity.x = min(move_toward(velocity.x, direction * (abs(velocity.x) + MAX_AIR_SPEED_ADDITION), air_acceleration), MAX_AIR_SPEED)
 
 func running(_delta: float):
 	var direction := Input.get_axis("move_left", "move_right")
@@ -239,6 +243,9 @@ func running(_delta: float):
 		_change_state(State.FALLING)
 
 func landing():
+	if not is_on_floor():
+		_change_state(State.FALLING)
+	
 	if landing_timer <= 0:
 		var direction := Input.get_axis("move_left", "move_right")
 
