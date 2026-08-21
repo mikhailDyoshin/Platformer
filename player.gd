@@ -8,6 +8,7 @@ extends CharacterBody2D
 @export var running_acceleration := 40.0
 @export var jump_charge_rate := 2.0
 @export var coyote_time := 0.1
+@export var landing_time := 0.3
 
 const MAX_JUMP_CHARGE := 2.0
 const INIT_JUMP_CHARGE := 1.0
@@ -18,13 +19,16 @@ var jump_charge := INIT_JUMP_CHARGE
 
 var coyote_timer := 0.0
 
+var landing_timer := 0.0
+
 enum State {
 	IDLE,
 	WALKING,
 	CHARGING,
 	JUMPING,
 	RUNNING,
-	FALLING
+	FALLING,
+	LANDING
 }
 
 var prev_state := State.IDLE
@@ -33,6 +37,7 @@ var state := State.IDLE
 func _physics_process(delta: float) -> void:
 	
 	coyote_timer = max(coyote_timer - delta, 0.0)
+	landing_timer = max(landing_timer - delta, 0.0)
 
 	match state:
 		State.IDLE:
@@ -52,6 +57,10 @@ func _physics_process(delta: float) -> void:
 			
 		State.FALLING:
 			falling(delta)
+		
+		State.LANDING:
+			landing()
+			
 	move_and_slide()
 	
 
@@ -158,24 +167,16 @@ func decelerate(deceleration):
 	velocity.x = move_toward(velocity.x, 0, deceleration)
 
 func falling(delta):
-	
-	
 	apply_gravity(delta)
 	
 	air_movement()
 	
 	if Input.is_action_just_pressed("jump") and coyote_timer > 0:
 		_change_state(State.CHARGING)
-		print("COYOTE!!!!!!!!!!!!!!!!!!!!!!!!!", coyote_timer)
 		return
 		
 	if is_on_floor():
-		var direction := Input.get_axis("move_left", "move_right")
-
-		if direction:
-			_change_state(State.WALKING)
-		else:
-			_change_state(State.IDLE)
+		_change_state(State.LANDING)
 	return
 	
 func apply_gravity(delta: float):
@@ -188,7 +189,11 @@ func _change_state(new_state: State):
 	prev_state = state
 	state = new_state
 	print_state()
-	match state:
+	_enter_state(state)
+
+
+func _enter_state(entered_state: State):
+	match entered_state:
 		State.CHARGING:
 			jump_charge = INIT_JUMP_CHARGE
 			$AnimatedSprite2D.play("charging")
@@ -196,13 +201,13 @@ func _change_state(new_state: State):
 			$AnimatedSprite2D.play("fall")
 			if prev_state == State.WALKING or prev_state == State.RUNNING:
 				coyote_timer = coyote_time
-				print(coyote_timer)
 		State.WALKING:
 			$AnimatedSprite2D.play("walk")
 		State.IDLE:
 			$AnimatedSprite2D.play("idle")
-
-			
+		State.LANDING:
+			$AnimatedSprite2D.play("landing")
+			landing_timer = landing_time
 	
 	
 func air_movement():
@@ -232,3 +237,12 @@ func running(_delta: float):
 		
 	if not is_on_floor():
 		_change_state(State.FALLING)
+
+func landing():
+	if landing_timer <= 0:
+		var direction := Input.get_axis("move_left", "move_right")
+
+		if direction:
+			_change_state(State.WALKING)
+		else:
+			_change_state(State.IDLE)
