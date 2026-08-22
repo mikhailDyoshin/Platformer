@@ -4,6 +4,8 @@
 [ext_resource type="PackedScene" uid="uid://du6jjh4eyws73" path="res://Player.tscn" id="2_uu6xs"]
 [ext_resource type="PackedScene" uid="uid://c1lhx51df2t73" path="res://Spike.tscn" id="3_cm0pq"]
 [ext_resource type="Texture2D" uid="uid://dbn3vdkpc3l7n" path="res://floor.svg" id="3_r0du0"]
+[ext_resource type="Texture2D" uid="uid://ccuct5ottn50h" path="res://dust-particles.png" id="5_3dxm6"]
+[ext_resource type="Script" uid="uid://d0kp32nifncp2" path="res://jump_dust.gd" id="5_fos0i"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_uu6xs"]
 texture = ExtResource("3_r0du0")
@@ -15,6 +17,70 @@ texture_region_size = Vector2i(32, 32)
 tile_size = Vector2i(32, 32)
 physics_layer_0/collision_layer = 1
 sources/1 = SubResource("TileSetAtlasSource_uu6xs")
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lgr22"]
+atlas = ExtResource("5_3dxm6")
+region = Rect2(0, 0, 36, 13)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_trn2v"]
+atlas = ExtResource("5_3dxm6")
+region = Rect2(36, 0, 36, 13)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_03owx"]
+atlas = ExtResource("5_3dxm6")
+region = Rect2(72, 0, 36, 13)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wkp8b"]
+atlas = ExtResource("5_3dxm6")
+region = Rect2(108, 0, 36, 13)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_20pc6"]
+atlas = ExtResource("5_3dxm6")
+region = Rect2(144, 0, 36, 13)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5vvyt"]
+atlas = ExtResource("5_3dxm6")
+region = Rect2(180, 0, 36, 13)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c6i3y"]
+atlas = ExtResource("5_3dxm6")
+region = Rect2(216, 0, 36, 13)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c2ibq"]
+atlas = ExtResource("5_3dxm6")
+region = Rect2(252, 0, 36, 13)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_fos0i"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lgr22")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_trn2v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_03owx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wkp8b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_20pc6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5vvyt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c6i3y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c2ibq")
+}],
+"loop": 0,
+"name": &"default",
+"speed": 20.0
+}]
 
 [node name="Main" type="Node2D" unique_id=411122876]
 script = ExtResource("1_cm0pq")
@@ -34,3 +100,13 @@ position = Vector2(558, 530)
 
 [node name="Spike2" parent="Spikes" unique_id=1462672677 instance=ExtResource("3_cm0pq")]
 position = Vector2(303, 562)
+
+[node name="Effects" type="Node2D" parent="." unique_id=1685116781]
+
+[node name="JumpDust" type="AnimatedSprite2D" parent="Effects" unique_id=1531201803]
+sprite_frames = SubResource("SpriteFrames_fos0i")
+frame = 7
+frame_progress = 1.0
+script = ExtResource("5_fos0i")
+
+[connection signal="animation_finished" from="Effects/JumpDust" to="Effects/JumpDust" method="_on_animation_finished"]

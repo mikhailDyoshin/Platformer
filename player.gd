@@ -11,6 +11,8 @@ extends CharacterBody2D
 @export var landing_time := 0.2
 @export var air_acceleration := 3.0
 
+@onready var jump_dust = get_node("../Effects/JumpDust")
+
 const MAX_JUMP_CHARGE := 2.0
 const INIT_JUMP_CHARGE := 1.0
 const MAX_WALKING_SPEED := 50.0
@@ -214,9 +216,12 @@ func _enter_state(entered_state: State):
 		State.LANDING:
 			decelerate(floor_deceleration)
 			$AnimatedSprite2D.play("landing")
-			landing_timer = landing_time
+			play_jump_dust(Vector2(0, 5))
+			landing_timer = landing_time  
 		State.RUNNING:
 			$AnimatedSprite2D.play("run")
+		State.JUMPING:
+			play_jump_dust()
 	
 
 func air_movement():
@@ -257,4 +262,11 @@ func landing():
 		if direction:
 			_change_state(State.WALKING)
 		else:
-			_change_state(State.IDLE)
+			_change_state(State.IDLE)  
+
+func play_jump_dust(offset: Vector2 = Vector2(0, 0)):
+	if jump_dust:
+		jump_dust.global_position = global_position + offset
+		jump_dust.play_effect()
+		return
+	print("Warning: Jump Dust is null")
