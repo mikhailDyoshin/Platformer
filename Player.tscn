@@ -319,6 +319,7 @@ walking_acceleration = 10.0
 shape = SubResource("RectangleShape2D_3tkgg")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=728441962]
+process_callback = 0
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
 

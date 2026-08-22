@@ -94,8 +94,7 @@ func walking(_delta):
 	
 
 	
-	if direction:
-		$AnimatedSprite2D.flip_h = direction < 0
+	flip_sprite(direction)
 	
 	if not direction:
 		_change_state(State.IDLE)
@@ -155,6 +154,10 @@ func charging(delta):
 	if not is_on_floor() and prev_state != State.FALLING:
 		_change_state(State.FALLING)
 		return
+
+func flip_sprite(direction: float):
+	if direction:
+		$AnimatedSprite2D.flip_h = direction < 0
 
 func get_state_name(state_var: State) -> String:
 	return State.find_key(state_var)
@@ -228,6 +231,8 @@ func running(_delta: float):
 	if not direction:
 		_change_state(State.IDLE)
 		return
+		
+	flip_sprite(direction)
 		
 	accelerate(direction, MAX_RUNNING_SPEED, running_acceleration)
 	
